@@ -7,6 +7,7 @@ import fs from 'fs';
 import path from 'path';
 
 import {
+  CLAUDE_CODE_ROUTER_URL,
   CONTAINER_IMAGE,
   CONTAINER_MAX_OUTPUT_SIZE,
   CONTAINER_TIMEOUT,
@@ -221,21 +222,37 @@ function buildContainerArgs(
   // Pass host timezone so container's local time matches the user's
   args.push('-e', `TZ=${TIMEZONE}`);
 
-  // Route API traffic through the credential proxy (containers never see real secrets)
-  args.push(
-    '-e',
-    `ANTHROPIC_BASE_URL=http://${CONTAINER_HOST_GATEWAY}:${CREDENTIAL_PROXY_PORT}`,
-  );
-
-  // Mirror the host's auth method with a placeholder value.
-  // API key mode: SDK sends x-api-key, proxy replaces with real key.
-  // OAuth mode:   SDK exchanges placeholder token for temp API key,
-  //               proxy injects real OAuth token on that exchange request.
-  const authMode = detectAuthMode();
-  if (authMode === 'api-key') {
-    args.push('-e', 'ANTHROPIC_API_KEY=placeholder');
+  // Route API traffic through claude-code-router if configured,
+  // otherwise use the credential proxy (containers never see real secrets)
+  if (CLAUDE_CODE_ROUTER_URL) {
+    // Router mode: connect directly to claude-code-router
+    // Special value "internal" starts router inside the container (connects to localhost:3000)
+    if (CLAUDE_CODE_ROUTER_URL === 'internal') {
+      args.push('-e', 'ANTHROPIC_BASE_URL=http://127.0.0.1:3000');
+      args.push('-e', 'CLAUDE_CODE_ROUTER_URL=internal');
+    } else {
+      // External router: connect to the specified URL (e.g., host.docker.internal:3000)
+      args.push('-e', `ANTHROPIC_BASE_URL=${CLAUDE_CODE_ROUTER_URL}`);
+    }
+    // Router handles auth, but we still provide placeholder credentials for SDK compatibility
+    const authMode = detectAuthMode();
+    if (authMode === 'api-key') {
+      args.push('-e', 'ANTHROPIC_API_KEY=placeholder');
+    } else {
+      args.push('-e', 'CLAUDE_CODE_OAUTH_TOKEN=placeholder');
+    }
   } else {
-    args.push('-e', 'CLAUDE_CODE_OAUTH_TOKEN=placeholder');
+    // Credential proxy mode: route through local proxy for credential injection
+    args.push(
+      '-e',
+      `ANTHROPIC_BASE_URL=http://${CONTAINER_HOST_GATEWAY}:${CREDENTIAL_PROXY_PORT}`,
+    );
+    const authMode = detectAuthMode();
+    if (authMode === 'api-key') {
+      args.push('-e', 'ANTHROPIC_API_KEY=placeholder');
+    } else {
+      args.push('-e', 'CLAUDE_CODE_OAUTH_TOKEN=placeholder');
+    }
   }
 
   // Runtime-specific args for host gateway resolution

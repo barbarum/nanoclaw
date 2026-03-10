@@ -51,6 +51,11 @@ export const CREDENTIAL_PROXY_PORT = parseInt(
   process.env.CREDENTIAL_PROXY_PORT || '3001',
   10,
 );
+// Optional: claude-code-router endpoint for routing to alternative model providers
+// Useful in China or for using non-Anthropic models (OpenRouter, DeepSeek, Ollama, etc.)
+// When set, containers connect to the router instead of the credential proxy
+// Format: http://host:port (e.g., http://host.docker.internal:3000)
+export const CLAUDE_CODE_ROUTER_URL = process.env.CLAUDE_CODE_ROUTER_URL;
 export const IPC_POLL_INTERVAL = 1000;
 export const IDLE_TIMEOUT = parseInt(process.env.IDLE_TIMEOUT || '1800000', 10); // 30min default — how long to keep container alive after last result
 export const MAX_CONCURRENT_CONTAINERS = Math.max(

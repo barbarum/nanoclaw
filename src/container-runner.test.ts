@@ -16,6 +16,7 @@ vi.mock('./config.js', () => ({
   GROUPS_DIR: '/tmp/nanoclaw-test-groups',
   IDLE_TIMEOUT: 1800000, // 30min
   TIMEZONE: 'America/Los_Angeles',
+  CLAUDE_CODE_ROUTER_URL: undefined,
 }));
 
 // Mock logger
@@ -26,6 +27,11 @@ vi.mock('./logger.js', () => ({
     warn: vi.fn(),
     error: vi.fn(),
   },
+}));
+
+// Mock credential-proxy (detectAuthMode is used by container-runner)
+vi.mock('./credential-proxy.js', () => ({
+  detectAuthMode: vi.fn(() => 'api-key'),
 }));
 
 // Mock fs
