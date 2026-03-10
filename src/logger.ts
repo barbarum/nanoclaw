@@ -1,7 +1,10 @@
 import pino from 'pino';
+import { readEnvFile } from './env.js';
+
+const envConfig = readEnvFile(['LOG_LEVEL']);
 
 export const logger = pino({
-  level: process.env.LOG_LEVEL || 'info',
+  level: envConfig.LOG_LEVEL || process.env.LOG_LEVEL || 'info',
   transport: { target: 'pino-pretty', options: { colorize: true } },
 });
 

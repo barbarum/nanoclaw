@@ -1,9 +1,12 @@
 import {
   Channel,
-  OnInboundMessage,
-  OnChatMetadata,
+  OnInboundMessage as OnInboundMessageType,
+  OnChatMetadata as OnChatMetadataType,
   RegisteredGroup,
 } from '../types.js';
+
+export type OnInboundMessage = OnInboundMessageType;
+export type OnChatMetadata = OnChatMetadataType;
 
 export interface ChannelOpts {
   onMessage: OnInboundMessage;
