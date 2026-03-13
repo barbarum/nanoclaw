@@ -114,7 +114,8 @@ function writeOutput(output: ContainerOutput): void {
 }
 
 function log(message: string): void {
-  console.error(`[agent-runner] ${message}`);
+  const timestamp = new Date().toISOString().slice(0, 23).replace('T', ' ');
+  console.error(`[${timestamp}] [agent-runner] ${message}`);
 }
 
 function getSessionSummary(sessionId: string, transcriptPath: string): string | null {
