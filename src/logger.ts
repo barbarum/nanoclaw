@@ -2,7 +2,13 @@ import pino from 'pino';
 
 export const logger = pino({
   level: process.env.LOG_LEVEL || 'info',
-  transport: { target: 'pino-pretty', options: { colorize: true } },
+  transport: {
+    target: 'pino-pretty',
+    options: {
+      colorize: true,
+      translateTime: 'SYS:yyyy-mm-dd HH:MM:ss.l',
+    },
+  },
 });
 
 // Route uncaught errors through pino so they get timestamps in stderr
